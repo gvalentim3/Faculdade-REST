@@ -13,6 +13,8 @@ import br.edu.ibmec.dto.EstadoCivilDTO;
 import br.edu.ibmec.entity.Aluno;
 import br.edu.ibmec.entity.Curso;
 import br.edu.ibmec.entity.EstadoCivil;
+import br.edu.ibmec.repository.AlunoRepository;
+import br.edu.ibmec.repository.CursoRepository;
 import org.springframework.stereotype.Service;
 
 import br.edu.ibmec.exception.RegraDeNegocioException;
@@ -20,20 +22,22 @@ import br.edu.ibmec.exception.EntidadeNaoEncontradaException;
 
 @Service
 public class AlunoService {
-	private UniversidadeDAO dao;
+	private AlunoRepository alunoRepository;
+    private CursoRepository cursoRepository;
 
-    public AlunoService(UniversidadeDAO universidadeDAO) {
-        this.dao = universidadeDAO;
+    public AlunoService(AlunoRepository alunoRepository, CursoRepository cursoRepository) {
+        this.alunoRepository = alunoRepository;
+        this.cursoRepository = cursoRepository;
     }
 
     public AlunoResponseDTO buscarAluno(String matricula) {
-        return dao.buscarAlunoPelaMatricula(matricula)
+        return alunoRepository.findById(matricula)
                 .map(AlunoResponseDTO::fromEntity)
                 .orElseThrow(() -> new EntidadeNaoEncontradaException("Aluno com matrícula " + matricula + " não encontrado"));
     }
 
     public List<AlunoResponseDTO> listarAlunos() {
-        List<Aluno> alunos = dao.buscarTodosAlunos();
+        List<Aluno> alunos = alunoRepository.findAll();
         return alunos.stream().map(AlunoResponseDTO::fromEntity).collect(Collectors.toList());
     }
 
@@ -47,29 +51,29 @@ public class AlunoService {
 
         atualizarEntidadeComDTO(novoAluno, alunoRequestDTO);
 
-        dao.salvarAluno(novoAluno);
+        alunoRepository.save(novoAluno);
 
         return AlunoResponseDTO.fromEntity(novoAluno);
     }
 
     public AlunoResponseDTO alterarAluno(String matricula, AlunoRequestDTO alunoRequestDTO) {
-        Aluno alunoExistente = dao.buscarAlunoPelaMatricula(matricula)
+        Aluno alunoExistente = alunoRepository.findById(matricula)
                 .orElseThrow(() -> new EntidadeNaoEncontradaException("Aluno com matrícula " + matricula + " não encontrado para atualização."));
 
         validarDadosDoAluno(alunoRequestDTO);
         atualizarEntidadeComDTO(alunoExistente, alunoRequestDTO);
 
-        dao.atualizarAluno(alunoExistente);
+        alunoRepository.save(alunoExistente);
 
         return AlunoResponseDTO.fromEntity(alunoExistente);
     }
 
     public void removerAluno(String matricula) {
-        if (dao.buscarAlunoPelaMatricula(matricula).isEmpty()) {
+        if (alunoRepository.findById(matricula).isEmpty()) {
             throw new EntidadeNaoEncontradaException("Aluno com matrícula " + matricula + " não encontrado para remoção.");
         }
 
-        dao.removerAlunoPelaMatricula(matricula);
+        alunoRepository.deleteById(matricula);
     }
 
     private void validarDadosDoAluno(AlunoRequestDTO dto) {
@@ -86,22 +90,16 @@ public class AlunoService {
         aluno.setDataNascimento(alunoRequestDTO.getDataNascimento());
         aluno.setMatriculaAtiva(alunoRequestDTO.isMatriculaAtiva());
 
-        int idadeAluno = calculaIdade(alunoRequestDTO.getDataNascimento());
-        aluno.setIdade(idadeAluno);
 
         EstadoCivil estadoCivil = converterEstadoCivil(alunoRequestDTO.getEstadoCivil());
         aluno.setEstadoCivil(estadoCivil);
 
         if (aluno.getCurso() == null || aluno.getCurso().getCodigo() != alunoRequestDTO.getCurso()) {
-            Curso novoCurso = dao.buscarCursoPeloCodigo(alunoRequestDTO.getCurso())
+            Curso novoCurso = cursoRepository.findById(alunoRequestDTO.getCurso())
                     .orElseThrow(() -> new RegraDeNegocioException("O curso com código " + alunoRequestDTO.getCurso() + " não foi encontrado."));
 
             aluno.setCurso(novoCurso);
         }
-    }
-
-    private int calculaIdade(LocalDate dataNascimento) {
-        return Period.between(dataNascimento, LocalDate.now()).getYears();
     }
 
     private String gerarMatriculaUnica() {

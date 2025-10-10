@@ -13,7 +13,6 @@ import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Vector;
 import java.time.LocalDate;
 
 @Data

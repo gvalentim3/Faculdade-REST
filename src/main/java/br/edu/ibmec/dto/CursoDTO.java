@@ -1,5 +1,6 @@
 package br.edu.ibmec.dto;
 
+import br.edu.ibmec.entity.Curso;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -10,4 +11,11 @@ import lombok.NoArgsConstructor;
 public class CursoDTO {
     private int codigo;
     private String nome;
+
+    public static CursoDTO fromEntity(Curso curso) {
+        CursoDTO dto = new CursoDTO();
+        dto.setCodigo(curso.getCodigo());
+        dto.setNome(curso.getNome());
+        return dto;
+    }
 }
