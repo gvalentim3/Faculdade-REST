@@ -14,19 +14,23 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "Cursos")
-public class Curso {
+@Table(name = "Disciplinas")
+public class Disciplina {
 
     @Id
-	@Column (name = "codigo")
+    @Column (name = "codigo")
     private Integer codigo;
 
     @Column (name = "nome")
     private String nome;
 
-    @OneToMany(mappedBy = "curso", cascade = CascadeType.ALL)
-    private List<Aluno> alunos = new ArrayList<>();
+    @Column (name = "creditos")
+    private int creditos;
 
-    @OneToMany(mappedBy = "curso")
-    private List<Disciplina> disciplinas = new ArrayList<>();
+    @ManyToOne
+    @JoinColumn (name = "curso_id")
+    private Curso curso;
+
+    @OneToMany (mappedBy = "disciplina")
+    private List<Turma> turmas = new ArrayList<>();
 }

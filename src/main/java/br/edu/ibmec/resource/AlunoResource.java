@@ -4,6 +4,8 @@ import java.net.URI;
 import java.util.List;
 
 import br.edu.ibmec.dto.AlunoResponseDTO;
+import br.edu.ibmec.dto.MensalidadeDTO;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 
 import br.edu.ibmec.service.AlunoService;
@@ -17,16 +19,19 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping("/alunos")
 public class AlunoResource {
 
-    private final AlunoService alunoService;
-
-    public AlunoResource(AlunoService alunoService) {
-        this.alunoService = alunoService;
-    }
+    @Autowired
+    private AlunoService alunoService;
 
     @GetMapping(path = "/{matricula}", produces = "application/json")
     public ResponseEntity<AlunoResponseDTO> buscarAlunoPorMatricula(@PathVariable String matricula) {
         AlunoResponseDTO alunoResponseDTO = alunoService.buscarAluno(matricula);
         return ResponseEntity.ok(alunoResponseDTO);
+    }
+
+    @GetMapping(path = "/{matricula}/mensalidade", produces = "application/json")
+    public ResponseEntity<MensalidadeDTO> calcularMensalidade(@PathVariable String matricula) {
+        MensalidadeDTO mensalidade = alunoService.calcularMensalidade(matricula);
+        return ResponseEntity.ok(mensalidade);
     }
 
     @PostMapping()

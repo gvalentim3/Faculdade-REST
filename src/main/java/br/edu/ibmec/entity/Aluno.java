@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -15,6 +16,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
+@Table(name = "Alunos")
 public class Aluno {
 
     @Id
@@ -42,8 +44,11 @@ public class Aluno {
     private List<String> telefones;
 
     @ManyToOne()
-    @JoinColumn(name = "codigo")
+    @JoinColumn(name = "curso_id")
 	private Curso curso;
+
+    @OneToMany(mappedBy = "aluno")
+    private List<Inscricao> inscricoes = new ArrayList<>();
 
     public int getIdade() {
         if (this.dataNascimento != null) {

@@ -3,6 +3,7 @@ package br.edu.ibmec.resource;
 import java.net.URI;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import br.edu.ibmec.service.CursoService;
@@ -14,11 +15,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 @RequestMapping("/cursos")
 public class CursoResource {
 
-	private final CursoService cursoService;
+    @Autowired
+	private CursoService cursoService;
 
-    public CursoResource(CursoService cursoService) {
-        this.cursoService = cursoService;
-    }
 
     @GetMapping(path = "/{codigo}", produces = "application/json")
     public ResponseEntity<CursoDTO> buscarCursoPeloCodigo(@PathVariable int codigo) {

@@ -3,7 +3,6 @@ package br.edu.ibmec.service;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import br.edu.ibmec.dao.UniversidadeDAO;
 import br.edu.ibmec.dto.AlunoRequestDTO;
 import br.edu.ibmec.dto.CursoDTO;
 import br.edu.ibmec.entity.Aluno;
@@ -12,15 +11,14 @@ import br.edu.ibmec.entity.EstadoCivil;
 import br.edu.ibmec.exception.RegraDeNegocioException;
 import br.edu.ibmec.exception.EntidadeNaoEncontradaException;
 import br.edu.ibmec.repository.CursoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CursoService {
-	private CursoRepository cursoRepository;
 
-	public CursoService(CursoRepository cursoRepository) {
-		this.cursoRepository = cursoRepository;
-	}
+    @Autowired
+    private CursoRepository cursoRepository;
 
     public CursoDTO buscarCurso(int codigo) {
         return cursoRepository.findById(codigo)
@@ -42,6 +40,8 @@ public class CursoService {
         }
 
         Curso novoCurso = new Curso();
+
+        novoCurso.setCodigo(cursoDTO.getCodigo());
 
         atualizarEntidadeComDTO(novoCurso, cursoDTO);
 
