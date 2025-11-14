@@ -8,8 +8,8 @@ import br.edu.ibmec.repository.AlunoRepository;
 import br.edu.ibmec.repository.InscricaoRepository;
 import br.edu.ibmec.repository.TurmaRepository;
 import br.edu.ibmec.exception.EntidadeNaoEncontradaException;
-import br.edu.ibmec.exception.RegraDeNegocioException;
 
+import br.edu.ibmec.service.validacoesStrategy.inscricao.ValidacaoInscricao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +27,9 @@ public class InscricaoService {
 
     @Autowired
     private TurmaRepository turmaRepository;
+
+    @Autowired
+    private List<ValidacaoInscricao> validacoes;
 
     public InscricaoDTO buscarInscricao(int codigo) {
         return inscricaoRepository.findById(codigo)
@@ -76,20 +79,8 @@ public class InscricaoService {
     }
 
     private void validarInscricao(InscricaoDTO inscricaoDTO) {
-        if (inscricaoDTO.getCodigo() <= 0) {
-            throw new RegraDeNegocioException("O código da inscrição deve ser um número positivo.");
-        }
-
-        if (!alunoRepository.existsById(inscricaoDTO.getMatriculaAluno())) {
-            throw new EntidadeNaoEncontradaException("Aluno com matrícula " + inscricaoDTO.getMatriculaAluno() + " não encontrado.");
-        }
-
-        if (!turmaRepository.existsById(inscricaoDTO.getTurmaId())) {
-            throw new EntidadeNaoEncontradaException("Turma com código " + inscricaoDTO.getTurmaId() + " não encontrada.");
-        }
-
-        if (inscricaoDTO.getNumFaltas() < 0) {
-            throw new RegraDeNegocioException("O número de faltas não pode ser negativo.");
+        for (ValidacaoInscricao validacao : validacoes) {
+            validacao.validar(inscricaoDTO);
         }
     }
 

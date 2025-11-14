@@ -14,6 +14,7 @@ import br.edu.ibmec.entity.*;
 import br.edu.ibmec.repository.AlunoRepository;
 import br.edu.ibmec.repository.CursoRepository;
 import br.edu.ibmec.repository.InscricaoRepository;
+import br.edu.ibmec.service.validacoesStrategy.aluno.ValidacaoAluno;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,6 +32,9 @@ public class AlunoService {
 
     @Autowired
     private InscricaoRepository inscricaoRepository;
+
+    @Autowired
+    private List<ValidacaoAluno> validacoes;
 
     public AlunoResponseDTO buscarAluno(String matricula) {
         return alunoRepository.findById(matricula)
@@ -115,11 +119,8 @@ public class AlunoService {
     }
 
     private void validarDadosDoAluno(AlunoRequestDTO dto) {
-        if (dto.getNome() == null || dto.getNome().trim().length() < 1 || dto.getNome().length() > 20) {
-            throw new RegraDeNegocioException("O nome do aluno é obrigatório e deve ter entre 1 e 20 caracteres.");
-        }
-        if (dto.getDataNascimento() == null) {
-            throw new RegraDeNegocioException("A data de nascimento é obrigatória.");
+        for (ValidacaoAluno validacao : validacoes) {
+            validacao.validar(dto);
         }
     }
 
