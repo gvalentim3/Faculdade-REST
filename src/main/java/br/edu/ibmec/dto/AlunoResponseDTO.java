@@ -15,6 +15,7 @@ public class AlunoResponseDTO {
     private boolean matriculaAtiva;
     private List<String> telefones;
     private int curso;
+    private double bolsa;
 
     public static AlunoResponseDTO fromEntity(Aluno aluno) {
         AlunoResponseDTO dto = new AlunoResponseDTO();
@@ -25,6 +26,7 @@ public class AlunoResponseDTO {
         dto.setMatriculaAtiva(aluno.isMatriculaAtiva());
         dto.setTelefones(aluno.getTelefones());
         dto.setCurso(aluno.getCurso().getCodigo());
+        dto.setBolsa(aluno.getBolsa());
 
         return dto;
     }

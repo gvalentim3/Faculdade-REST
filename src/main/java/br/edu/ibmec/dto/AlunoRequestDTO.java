@@ -25,4 +25,5 @@ public class AlunoRequestDTO {
 	private EstadoCivilDTO estadoCivil;
 	private List<String> telefones;
 	private int curso;
+    private double bolsa;
 }

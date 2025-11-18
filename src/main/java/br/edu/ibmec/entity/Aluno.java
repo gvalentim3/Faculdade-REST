@@ -28,6 +28,9 @@ public class Aluno {
     @Column(name = "data_nascimento")
     private LocalDate dataNascimento;
 
+    @Column(name = "bolsa")
+    private double bolsa;
+
     @Transient
     private int idade;
 
@@ -55,5 +58,9 @@ public class Aluno {
             return Period.between(this.dataNascimento, LocalDate.now()).getYears();
         }
         return 0;
+    }
+
+    public TipoCalculoMensalidade getTipoCalculo() {
+        return (this.bolsa > 0) ? TipoCalculoMensalidade.BOLSISTA : TipoCalculoMensalidade.INTEGRAL;
     }
 }

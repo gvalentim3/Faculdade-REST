@@ -3,6 +3,8 @@ package br.edu.ibmec.service;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -14,6 +16,7 @@ import br.edu.ibmec.entity.*;
 import br.edu.ibmec.repository.AlunoRepository;
 import br.edu.ibmec.repository.CursoRepository;
 import br.edu.ibmec.repository.InscricaoRepository;
+import br.edu.ibmec.service.calculoMensalidadeStrategy.CalculoMensalidadeStrategy;
 import br.edu.ibmec.service.validacoesStrategy.aluno.ValidacaoAluno;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,17 +27,31 @@ import br.edu.ibmec.exception.EntidadeNaoEncontradaException;
 @Service
 public class AlunoService {
 
-    @Autowired
-    private AlunoRepository alunoRepository;
+    private final AlunoRepository alunoRepository;
+    private final CursoRepository cursoRepository;
+    private final InscricaoRepository inscricaoRepository;
+    private final List<ValidacaoAluno> validacoes;
+
+    private final Map<TipoCalculoMensalidade, CalculoMensalidadeStrategy> strategyMap;
 
     @Autowired
-    private CursoRepository cursoRepository;
+    public AlunoService(AlunoRepository alunoRepository,
+                        CursoRepository cursoRepository,
+                        InscricaoRepository inscricaoRepository,
+                        List<ValidacaoAluno> validacoes,
+                        List<CalculoMensalidadeStrategy> strategyList) {
 
-    @Autowired
-    private InscricaoRepository inscricaoRepository;
+        this.alunoRepository = alunoRepository;
+        this.cursoRepository = cursoRepository;
+        this.inscricaoRepository = inscricaoRepository;
+        this.validacoes = validacoes;
 
-    @Autowired
-    private List<ValidacaoAluno> validacoes;
+        this.strategyMap = strategyList.stream()
+                .collect(Collectors.toUnmodifiableMap(
+                        CalculoMensalidadeStrategy::getTipo,
+                        Function.identity()
+                ));
+    }
 
     public AlunoResponseDTO buscarAluno(String matricula) {
         return alunoRepository.findById(matricula)
@@ -83,7 +100,7 @@ public class AlunoService {
     }
 
     public MensalidadeDTO calcularMensalidade (String matriculaAluno) {
-        final double VALOR_POR_CREDITO = 500.0;
+        final double VALOR_POR_CREDITO = 200.0;
 
         Aluno aluno = alunoRepository.findById(matriculaAluno)
                 .orElseThrow(() -> new EntidadeNaoEncontradaException("Aluno com matrícula " + matriculaAluno + " não encontrado."));
@@ -107,7 +124,13 @@ public class AlunoService {
             nomesDisciplinas.add(disciplina.getNome());
         }
 
-        double valorTotal = totalCreditos * VALOR_POR_CREDITO;
+        double valorBruto = totalCreditos * VALOR_POR_CREDITO;
+
+        TipoCalculoMensalidade tipoCalculo = aluno.getTipoCalculo();
+
+        CalculoMensalidadeStrategy strategy = strategyMap.get(tipoCalculo);
+
+        double valorTotal = strategy.calcular(valorBruto, aluno);
 
         return new MensalidadeDTO(
                 aluno.getMatricula(),
@@ -128,7 +151,7 @@ public class AlunoService {
         aluno.setNome(alunoRequestDTO.getNome());
         aluno.setDataNascimento(alunoRequestDTO.getDataNascimento());
         aluno.setMatriculaAtiva(alunoRequestDTO.isMatriculaAtiva());
-
+        aluno.setBolsa(alunoRequestDTO.getBolsa());
 
         EstadoCivil estadoCivil = converterEstadoCivil(alunoRequestDTO.getEstadoCivil());
         aluno.setEstadoCivil(estadoCivil);
